@@ -2,19 +2,40 @@ package model;
 
 public class Main {
     public static void main(String[] args) {
-        Node root = new Node(100.0);
-        BinaryTree tree = new BinaryTree(root, 0.1, 3);
+      
+    /**
+     * @param current_stock_price: The current price of the stock
+     * @param price_movement: The magnitude of price movement in either direction
+     * @param iterations: The amount of time steps to take
+     * 
+     * @param risk_free_rate: Risk free rate, or the garenteed rate of return with no risk
+     * @param call_option: True is it is a call option, else it would be marked as put option
+     * @param strike_price: Strike price of the option
+     * 
+      */
 
+        double current_stock_price = 100.0;
+        double price_movement = 0.1; 
+        int iterations = 3;
+
+        boolean call_option = true;
+        double strike_price = 102.0;
+        double risk_free_rate = 0.03;
+
+
+        Node root = new Node(current_stock_price);
+        BinaryTree tree = new BinaryTree(root, price_movement, iterations);
+        
         tree.add_layers();
         
-        BackwardInductionTree back_tree = new BackwardInductionTree(tree, 0.05, true, 110);
-
+        BackwardInductionTree back_tree = new BackwardInductionTree(tree, risk_free_rate, call_option, strike_price);
 
         tree.printTree();
 
         back_tree.compute_payoffs();
-        System.out.println("Payout: " + back_tree.backwardInduction());
 
-        tree.printTree();
+        System.out.println("Option Value: " + String.format("%.2f",  back_tree.backwardInduction()));
+
+        back_tree.printTree();
     }
 }

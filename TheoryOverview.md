@@ -1,56 +1,202 @@
-### Binomial Model Theory Overview
+# Binomial Model Theory Overview
 
 **Disclaimer**: Many regulatory bodies, including the European Securities and Markets Authority (ESMA) and the U.S. Federal Bureau of Investigation (FBI), have issued warnings or outright banned retail binary options trading due to widespread fraud. Most platforms are unregulated, and the business model often pits the trader against the broker, making it mathematically designed for traders to lose money. Binary options are often described as a form of gambling rather than a legitimate investment. 
 
 **This is only for educational purposes, this is NOT financial advice**
 
-## 5 Key Components
+## Preview
+The **Binomial Model** provides a method to determine an options fair price in present value by projecting future price movements of an underlying asset over a discrete amount of time. In the most simplest forms, this model only considers that the price of the underlying asset can only move in two directions -- up and down -- at a fixed magnitude.
 
-1. Beginning Asset Value
-    --> The initial value of the underlying asset
 
-2. Size of the **up** move
-    --> The expected gain given that the underlying asset has increased in value
-    --> Denotated as U
 
-3. Size the **down** move
-    --> The expected loss given that the underlying asset has decreased in value
-    --> Denotated as D (= 1/U)
+### 5 Key Components
 
-4. Probability of the **up** move
-    --> Chances that the underlying asset increases in value
-    --> Denotated as P(U)
+1. Beginning Asset Value ($S$)
+→ The initial value of the underlying asset.
 
-5. Probability of the **down** move
-    --> Chances that the underlying asset decreases in value
-    --> Denotated as P(D) (= 1 - P(D))
+2. Up Move Factor ()
+→ The proportional gain when the asset price increases.
+→ Represented as U.
 
+3. Down Move Factor (D)
+→ The proportional loss when the asset price decreases.
+→ Represented as D = 1 / U.
+
+4. Strike Price ($S_k$)
+→ The price at which the option can be exercised at.
+
+5. Risk Free Rate ($r$)
+→ Guaranteed rate of return with no risk. 
+
+### **Note** 
+Although it may seem intutive to consider the probability of the underlying asset going up or down, we'll later assert that the option's fair price is mutually exclusive due to abitrage reasons.  
 
 ## Forward Binary Tree
-Say the current stock is P0 at time T0. From its current price, it can only go **up** or **down** to T + 1. Hence, we'll model this movement by adding two children nodes from the current one, with the right node having the value of P0 * U (signaling upside movement) and the left node having a value of P0 * D (downside movement). 
+Say the current stock price is P₀ at time T₀.
+From this point, it can only move up or down at the next time step (T₁).
 
-<img src="BinomialModelPicture1.png" alt="Alt Text" style="width:30%; height:auto;">
+We model this by adding two child nodes from the current one:
 
-Then, for each of those child nodes, we'll model the price movement from that point. We'll do this until we've met the desired time, T.
+Right child = P₀ × U (upward movement)
 
-#### Visual Demonstration
-Here is a sample of forward binary options pricing tree with the following parameters: iterations = 2, Upside & Downside  = 10% 
+Left child = P₀ × D (downward movement)
 
+We then repeat this process recursively for each new node until we reach the option’s expiration time T.
+
+
+<p align="center">
+  <img src="Picture1.png" alt="Binomial Tree Illustration" width="500"><br>
+  <em>Figure 1: Stock Price Visualization</em>
+</p>
+
+
+#### Example
+If we set iterations = 2 and U = 1.1, D = 0.9, our tree looks like:
+
+```
+            ┌── 133.10
         ┌── 121.00
+        │   └── 110.00
     ┌── 110.00
-    │   └── 99.00
-    100.00
-    │   ┌── 99.00
-    └── 90.00
-        └── 81.00
+    │   │   ┌── 110.00
+    │   └── 100.00
+    │       └── 90.91
+   100.00
+    │       ┌── 110.00
+    │   ┌── 100.00
+    │   │   └── 90.91
+    └── 90.91
+        │   ┌── 90.91
+        └── 82.64
+            └── 75.13
 
-## Backward induction
+```
 
-At this point, there are many paths the stock price can take. We are given some strike price S for the option. As market makers, we want to ask ourselves, **"What is a fair price for this option"?**. 
+## Backward Induction
 
-To tackle this prompt, we start by calculating payoff: How much will this option worth at expiration (European Options).
-Simply, the value of the option at price P is equal to ``` max(0, P - Strike_Price) ```. We'll use simple numbers to demonstrate in the image below.
+At expiration, each **terminal node** has a payoff -- the value of the option at expiration. 
+Given these payoffs, we want to ask, what is the fair price of the option today? 
 
-<img src="BinomialModelValue.png" alt="Alt Text" style="width:50%; height:auto;">
+### Step 1: Calculate the Payoffs
+Recall for an option, there are two components for determining payoff:
+\
+Stock Price: $S$
+\
+Strike Price: $ S_k$ 
 
-At this point, we need to calculate the expected value of the option, which is simply V_now = e^(−rΔt) × [ P(U) × V_up + (1 − P(U)) × V_down ]
+
+
+For a **call** option, the payoff is as follows:
+$$
+Payoff = max(0, S - S_k)
+$$
+
+For a **put** option, the payoff is as follows:
+$$
+Payoff = max(0, S_k - S)
+$$
+
+
+<p align="center">
+  <img src="Picture2.png" alt="Backward Induction Visualization" width="500"><br>
+  <em>Figure 2: Stock Price Visualization</em>
+</p>
+
+### Step 2: Work Backward (Induction)
+
+<p align="center">
+  <img src="Picture3.png" alt="Backward Induction Visualization" width="500"><br>
+  <em>Figure 3:  Option Price Visualization</em>
+</p>
+At earlier node (that is, the parent node of the current children), we want to calculate the expected discount value given the two future outcomes:
+
+$$ V_{current} = e^{-r \cdot Δt} \cdot (p \cdot V_{\text{up}} + (1-p) \cdot V_{\text{down}}) $$
+
+Where 
+* $r$ is the risk free rate
+* $Δt$ is the time between steps
+* $p$ is the risk nuetral probability
+
+$$ p = \frac{e^{r \cdot Δt} - D}{U - D} $$
+
+Note that instead of the probabilities given P(U) or P(D), we use risk nuetral probability. This is because we want to ensure **no arbitrage** -- meaning there is no way to make a riskless profit by combining stocks and options. [^Further Info]
+
+Although it may complicated, it'll be easier to understand once broken down. 
+Inside the formula, it'll look identitcal as if you were to just compute regular expected value of the option, except we used risk nuetral probability instead of up and down probabilities.
+
+$$
+V_{current} = (p_{up} \cdot V_{\text{up}} + (1-p_{down}) \cdot V_{\text{down}})
+$$
+
+The factor being multiplied by the expected value ($e^{-r \cdot Δt}$) is the discount factor. Since money is flowing from the future and closer to present day, we must discount it so that it is equivalent in value. [^Time Value of Money]
+
+We'll repeat this process until we've reached the root node, which gives the fair option price today. 
+
+
+
+
+#### Example
+Parameters:
+
+Iterations = 3
+
+U = 1.1, D = 0.9
+
+Risk-free rate = 0.03
+
+Strike = 102
+
+Call option = True
+
+```
+
+Option Value: 7.19
+            ┌── 31.10
+        ┌── 19.76
+        │   └── 8.00
+    ┌── 12.08
+    │   │   ┌── 8.00
+    │   └── 4.09
+    │       └── 0.00
+   7.19
+    │       ┌── 8.00
+    │   ┌── 4.09
+    │   │   └── 0.00
+    └── 2.10
+        │   ┌── 0.00
+        └── 0.00
+            └── 0.00
+
+```
+
+## Conclusion and Takeaways
+The **Binomial Model** combines two integral components of finance together -- time value of money and risk neutrality -- to determine a fair price for an option.
+
+One of my biggest takeaways was the absence of upward and downward probabilities: **Regardless of the chances of the stock going up or down, the price of the option will be the same**. Another way to look at it is we're pricing the volitility of the underlying asset. Intuitively, it makes sense, since market makers need to be hedged against up or down movement -- they don't profit off of guessing price direction, but from ensuring a fair and riskless price.  [^Additional Resource]
+
+Another key insight was the concept of arbitrage; It gave me perspective on how options are priced in from a market makers standpoint. It also showed me how there is no *free lunch* in a free, effecient market. I'm curious to see how other instruments are priced in with arbitrage, and if there are any limitations to this approach. 
+
+
+## Further Comments
+### Outlook
+Since the [Black-Scholes](https://en.wikipedia.org/wiki/Black%E2%80%93Scholes_model) model can be derived from the binary options model, I may consider tackling it in the future. I may also consider doing more complex opperations, such adding American Options or add the greeks for sensitivity changes. 
+
+From a trading perspective, I may also consider applying the binary options model to the live market to see how well the model does in practice. 
+
+### Remarks
+
+I'd like to thank my Professor, [Sara Smiarowski](https://www.isenberg.umass.edu/people/sara-smiarowski), for introducing me to this topic. I'm very grateful for her guidance.
+
+If you have any comments, suggestions, or questions, feel free to reach out to me at gsokhin@umass.edu .
+
+
+
+
+
+
+
+ [^Further Info]: https://www.youtube.com/watch?v=fZa75q5Fkkk\
+
+ [^Additional Resource]: https://www.youtube.com/watch?v=eA5AtTx3rRI
+
+ [^Time Value of Money]: https://en.wikipedia.org/wiki/Time_value_of_money
