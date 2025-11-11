@@ -32,8 +32,6 @@ public class Main {
 
         tree.printTree();
 
-        back_tree.compute_payoffs();
-
         System.out.println("Option Value: " + String.format("%.2f",  back_tree.backwardInduction()));
 
         back_tree.printTree();
