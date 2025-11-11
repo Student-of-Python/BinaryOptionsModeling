@@ -18,7 +18,7 @@ public class BackwardInductionTree {
         this.strike_price = strike_price;
 
         this.delta_t = 1.0 / (this.tree.getHeight(this.tree.root));
-        this.probability = (Math.exp(this.risk_free_rate * this.delta_t) - this.tree.U) / (this.tree.U - this.tree.D);
+        this.probability = (Math.exp(this.risk_free_rate * this.delta_t) - this.tree.D) / (this.tree.U - this.tree.D);
     }
         
 

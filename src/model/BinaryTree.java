@@ -5,15 +5,22 @@ public class BinaryTree{
     Node root;
     final double U; 
     final double D;
-    public BinaryTree(Node root, double U) {
+    final int layers;
+    public BinaryTree(Node root, double U, int layers) {
         assert U > 0 : "Upside cannot be negative " + U; 
+        assert layers >= 0 : "Amount of layers must be greater than 0: " + layers;
         this.root = root;
         this.U = 1 + U;
-        this.D = 1.0 / this.U; }
+        this.D = 1.0 / this.U;
+        this.layers = layers;
+    }
+        
 
     
-    public void add(){
-        add(this.root);
+    public void add_layers(){
+        for (int i = 0; i < this.layers; i++) {
+            add(this.root);   
+        }
     }
 
     public void add(Node current){
@@ -29,8 +36,8 @@ public class BinaryTree{
 
         if (current.left == null && current.right == null) {
          //Node has no children, add two children
-            current.left = new Node(current.value * this.U);
-            current.right = new Node(current.value * this.D);
+            current.left = new Node(current.value * this.D);
+            current.right = new Node(current.value * this.U);
             return;
         }
         
